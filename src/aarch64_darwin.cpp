@@ -81,8 +81,14 @@ static void darwin_exec(const std::string& path,
     exit(1);
 }
 
-pid_t aarch64_darwin_process::get_pid() {
-    return this->pid_;
+// public:
+
+pid_t aarch64_darwin_process::get_pid() const {
+    return pid_;
+}
+
+mach_port_t aarch64_darwin_process::get_mach_port() const {
+    return mach_port_;
 }
 
 try_t<aarch64_darwin_process> aarch64_darwin_process::spawn(
@@ -137,14 +143,11 @@ try_op_t aarch64_darwin_process::step_execution() {
     errno = 0;
     if (ptrace(PT_STEP, pid_, (caddr_t)1, 0) == -1)
         return std::unexpected(
-            fail_t{.err_type = error_t::fatal, .msg = strerror(errno)});
-    int status;
-    waitpid(pid_, &status, 0);
+            fail_t{.err_type = error_t::non_fatal, .msg = strerror(errno)});
     return {};
 }
 
 try_t<basic_breakpoint> aarch64_darwin_process::set_breakpoint(uintptr_t addr) {
-    //
     basic_breakpoint brk;
     auto op = [&brk, this](mach_vm_address_t addr, mach_vm_size_t size) {
         return this
@@ -215,7 +218,7 @@ aarch64_darwin_process::~aarch64_darwin_process() {
     ptrace(PT_KILL, pid_, (caddr_t)1, 0);
 }
 
-// private
+// private:
 
 aarch64_darwin_process::aarch64_darwin_process(pid_t pid) : pid_{pid} {}
 

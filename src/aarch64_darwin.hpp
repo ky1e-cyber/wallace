@@ -11,7 +11,8 @@
 
 class aarch64_darwin_process : private non_copyable {
    public:
-    pid_t get_pid();
+    pid_t get_pid() const;
+    mach_port_t get_mach_port() const;
 
     static try_t<aarch64_darwin_process> spawn(
         const std::string& exec_path,
